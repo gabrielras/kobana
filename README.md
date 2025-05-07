@@ -1,44 +1,132 @@
-# Kobana
 
-TODO: Delete this and the text below, and describe your gem
+# Kobana Ruby gem
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/kobana`. To experiment with that code, run `bin/console` for an interactive prompt.
+Gem não-oficial em Ruby para integração com a API da Kobana (https://www.kobana.com.br),  
+com suporte à criação de pagamentos via Pix, validações locais e tratamento de erros.
 
-## Installation
+⚠️ **Esta gem ainda NÃO está publicada no RubyGems.org.**  
+As instruções abaixo mostram como instalá-la e usá-la localmente.
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+---
 
-Install the gem and add to the application's Gemfile by executing:
+## INSTALAÇÃO LOCAL
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/kobana.git
+   cd kobana
+   ```
+
+2. Construa a gem:
+   ```bash
+   gem build kobana.gemspec
+   ```
+
+3. Instale localmente:
+   ```bash
+   gem install ./kobana-0.1.0.gem
+   ```
+
+4. Ou adicione no seu Gemfile:
+   ```ruby
+   gem "kobana", path: "/caminho/absoluto/para/kobana"
+   ```
+
+---
+
+## CONFIGURAÇÃO
+
+Antes de fazer qualquer chamada à API, configure a gem:
+
+```ruby
+require "kobana"
+
+Kobana.use_sandbox = true # opcional
+Kobana.token = "SEU_TOKEN_AQUI"
+Kobana.user_agent = "Seu Nome <seu@email.com>"
+Kobana.max_network_retries = 2
+Kobana.timeout = 60
+Kobana.open_timeout = 30
+Kobana.log_level = Kobana::LEVEL_INFO
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+---
 
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+## EXEMPLO: PAGAMENTO VIA PIX
+
+```ruby
+params = {
+  amount: "100", # em centavos (R$1,00 = "100")
+  financial_account_uid: "uuid-da-conta",
+  qrcode: "6052022"
+}
+
+begin
+  response = Kobana::Resources::PixPayment.create(params)
+  puts response
+rescue Kobana::ApiError => e
+  puts "Erro na API (status #{e.status_code}): #{e.message}"
+  puts "Resposta da API: #{e.response}"
+end
 ```
 
-## Usage
+---
 
-TODO: Write usage instructions here
+## VALIDAÇÃO LOCAL
 
-## Development
+```ruby
+begin
+  Kobana::Validations::PixPaymentValidator.validate!(params)
+rescue Kobana::ValidationError => e
+  puts "Erros de validação: #{e.errors}"
+end
+```
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+---
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## TRATAMENTO DE ERROS
 
-## Contributing
+A gem define erros específicos:
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/kobana. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/kobana/blob/main/CODE_OF_CONDUCT.md).
+- `Kobana::ApiError` – Respostas 4xx da API
+- `Kobana::ServerError` – Respostas 5xx
+- `Kobana::RateLimitError` – Excedeu o limite de requisições (429)
+- `Kobana::ValidationError` – Validação local falhou
+- `Kobana::KobanaError` – Qualquer outro erro inesperado
 
-## License
+---
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
+## TESTES E ANÁLISE ESTÁTICA
 
-## Code of Conduct
+Para rodar os testes e o RuboCop:
 
-Everyone interacting in the Kobana project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/kobana/blob/main/CODE_OF_CONDUCT.md).
-# kobana
+```bash
+bundle install
+bundle exec rspec
+bundle exec rubocop
+```
+
+---
+
+## CONTRIBUINDO
+
+1. Faça um fork
+2. Crie uma branch:
+   ```bash
+   git checkout -b minha-feature
+   ```
+3. Commit:
+   ```bash
+   git commit -m 'Minha contribuição'
+   ```
+4. Push:
+   ```bash
+   git push origin minha-feature
+   ```
+5. Abra um Pull Request
+
+---
+
+## LICENÇA
+
+MIT © 2025 Gabriel Rocha
